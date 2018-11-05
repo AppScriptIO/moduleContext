@@ -10,6 +10,29 @@ describe('Module Cacher', () => {
     beforeEach(() => {
     })
     
+    describe('Creating a cache for ModuleContext class itself', () => {
+        describe('Creating unreferenced/uncached ModuleContext classes', () => {
+            let MC1 = ModuleContext()
+            let MC2 = ModuleContext()
+
+            it('should create different ModuleContext classes', () => {
+                assert.notStrictEqual(MC1, MC2)
+            })
+        })
+        describe('Creating referenced/cached ModuleContext classes', () => {
+            const cacheReferenceName = 'MC-x'
+            let MC1 = ModuleContext({ cacheReferenceName })
+            let MC2 = ModuleContext({ cacheReferenceName })
+
+            it('should return same ModuleContext classes', () => {
+                assert.strictEqual(MC1, MC2)
+            })
+            it('should cache ModuleContext classes in the module scope variable', () => {
+                assert.strictEqual(MC1, MC1.ModuleContextCachedList[cacheReferenceName])
+            })
+        })
+    })
+
     describe('Different ways of instantiating ModuleContext', () => {
         let MCFunc = ModuleContext()
         let MCObject = new MCFunc({ target: func })
@@ -47,7 +70,7 @@ describe('Module Cacher', () => {
         })
 
         it('should create a single instance and cache it inside list object', () => {
-            assert.strictEqual(Object.keys(MCClass.list).length, 1)
+            assert.strictEqual(Object.keys(MCClass.targetCachedList).length, 1)
         })
 
     })
@@ -67,21 +90,20 @@ describe('Module Cacher', () => {
         })
     })
 
-    describe('Using module inside other module instances', () => {
-        let MCClass = ModuleContext()
-        
-        let proxiedFuncX  = new MCClass({ target: func })
-        let proxiedFuncY  = new MCClass({ target: func })
+    describe('create cached target function results - using cacheName before or after target proxy creation', () => {
+            let MCClass = ModuleContext()
+            
+            let proxiedFuncX  = new MCClass({ target: func, cacheName: 'X' })
 
-        proxiedFuncX.moduleContext.cacheName = 'X'
-        proxiedFuncY.moduleContext.cacheName = 'Y'
-
-        let moduleInstance1 = proxiedFuncX(superclass)
-        let moduleInstance2 = proxiedFuncY(superclass)
-
-        it('should create two cached module instances inside array.', () => {
-            assert.equal(Object.keys(MCClass.list).length, 2)
-        })
+            let proxiedFuncY  = new MCClass({ target: func})
+            proxiedFuncY.moduleContext.cacheName = 'Y'
+    
+            let moduleInstance1 = proxiedFuncX(superclass)
+            let moduleInstance2 = proxiedFuncY(superclass)
+            
+            it('should create two cached module instances inside array.', () => {
+                assert.equal(Object.keys(MCClass.targetCachedList).length, 2)
+            })            
 
     })
 })

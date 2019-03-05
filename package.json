@@ -1,7 +1,7 @@
 {
-    "name": "@dependency/ModuleContext",
-    "version": "0.1.0",
-    "main": "./source/entrypoint.js",
+    "name": "@dependency/moduleContext",
+    "version": "1.0.0",
+    "main": "./source/script.js",
     "devDependencies": {
         "@dependency/scriptManager": "https://github.com/AppScriptIO/scriptManager#semver:^1.x.x",
         "@dependency/deploymentScript": "https://github.com/AppScriptIO/deploymentScript#semver:^1.x.x",

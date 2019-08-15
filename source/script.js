@@ -1,113 +1,114 @@
-/**
- * Caches modules on demand using a unique key name.
- * Usage options:
- *  • With key - Once during app initialization, where references are saved (hard link) to a string key - e.g. "condition", "middleware".
- *  • Anonymous - Several times during app runtime, where instances should be garbage collected - e.g. template.
- */
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;
 
-const ModuleContextCachedList = {} // all ModuleContext cached classes
 
-// Interfaces: expose as 'new' keyword or function call.
-export default new Proxy(function() {}, {
-  /**
-   *  Create cache of module context before creating a cache for target.
-   */
+
+
+
+
+const ModuleContextCachedList = {};var _default =
+
+
+new Proxy(function () {}, {
+
+
+
   apply: (target, thisArg, argumentsList) => {
-    return contextReference(...argumentsList)
+    return contextReference(...argumentsList);
   },
-  // Use ContextModule without caching.
-  construct: (target, argumentsList, newTarget) => {
-    const Class = contextReference()
-    return new Class(...argumentsList)
-  },
-})
 
-/**
- * Create context for 'moduleContext' class
- */
+  construct: (target, argumentsList, newTarget) => {
+    const Class = contextReference();
+    return new Class(...argumentsList);
+  } });exports.default = _default;
+
+
+
+
+
 function contextReference({
-  cacheReferenceName = null, // cache reference name. In case specified the ModuleContext class would be cached
-} = {}) {
-  let context
+  cacheReferenceName = null } =
+{}) {
+  let context;
   if (cacheReferenceName && ModuleContextCachedList[cacheReferenceName]) {
-    context = ModuleContextCachedList[cacheReferenceName]
+    context = ModuleContextCachedList[cacheReferenceName];
   } else if (cacheReferenceName) {
-    context = ModuleContextCachedList[cacheReferenceName] = createClassScope({ cacheReferenceName })
+    context = ModuleContextCachedList[cacheReferenceName] = createClassScope({ cacheReferenceName });
   } else {
-    context = createClassScope()
+    context = createClassScope();
   }
-  return context
+  return context;
 }
 
-/*
- * Returns ModuleContext class either cached or not.
- */
-function createClassScope({ cacheReferenceName } = {}) {
-  const self = class ModuleContext {
-    static targetCachedList = {} // list of cached target objects
-    static targetCounter = {
-      // number of created target objects.
-      cached: 0,
-      nonReferenced: process.env.SZN_DEBUG ? 0 : null, // targets not meant to be cached, only for debug puposes.
-    }
 
-    // @returns a proxified version of target.
+
+
+function createClassScope({ cacheReferenceName } = {}) {var _class, _temp;
+  const self = (_temp = _class = class ModuleContext {
+
+
+
+
+
+
+
+
     constructor({ target, cacheName = null }) {
-      /* this = cache module context */
-      this.cacheName = cacheName
-      let proxified = this.proxify(target)
-      return proxified
+
+      this.cacheName = cacheName;
+      let proxified = this.proxify(target);
+      return proxified;
     }
 
-    // proxy wraps target object
+
     proxify(target) {
-      let cacheContext = this
+      let cacheContext = this;
       let handler = {
-        // add 'moduleContext' as getter property of the target.
+
         get: (target, property, receiver) => {
           if (property == 'moduleContext') {
-            return cacheContext
+            return cacheContext;
           } else {
-            return target[property]
+            return target[property];
           }
         },
-        // implementation for functions - cache functions when called with same cacheName
+
         apply: (target, thisArg, argumentsList) => {
-          let instance
+          let instance;
           if (cacheContext.cacheName && self.targetCachedList[cacheContext.cacheName]) {
-            instance = self.targetCachedList[cacheContext.cacheName] // return result of cached previous call.
+            instance = self.targetCachedList[cacheContext.cacheName];
           } else if (cacheContext.cacheName) {
             if (typeof argumentsList[0] == 'object') {
-              self.targetCachedList[cacheContext.cacheName] = target.call(thisArg, Object.assign({ methodInstanceName: cacheContext.cacheName }, argumentsList[0]))
+              self.targetCachedList[cacheContext.cacheName] = target.call(thisArg, Object.assign({ methodInstanceName: cacheContext.cacheName }, argumentsList[0]));
             } else {
-              self.targetCachedList[cacheContext.cacheName] = target.call(thisArg, ...argumentsList)
+              self.targetCachedList[cacheContext.cacheName] = target.call(thisArg, ...argumentsList);
             }
-            instance = self.targetCachedList[cacheContext.cacheName]
-            self.targetCounter.cached++
+            instance = self.targetCachedList[cacheContext.cacheName];
+            self.targetCounter.cached++;
           } else {
-            instance = target.call(thisArg, ...argumentsList)
-            // Cache targets not needed to be referenced only in debug mode.
+            instance = target.call(thisArg, ...argumentsList);
+
             if (process.env.SZN_DEBUG) {
-              // for debug purposes, cache target objects with automatically named references.
-              self.targetCounter.nonReferenced++
-              self.targetCachedList[Symbol.for(`${target.name} ${self.targetCounter.nonReferenced}` /*create a name that is more understandable*/)] = instance
+
+              self.targetCounter.nonReferenced++;
+              self.targetCachedList[Symbol.for(`${target.name} ${self.targetCounter.nonReferenced}`)] = instance;
             }
           }
-          return instance
-        },
-      }
-      return new Proxy(target, handler)
-    }
-  }
+          return instance;
+        } };
 
-  // add getter to reitrive the cache list of static classes 'ContextModule' (defining getter on an existing object)
+      return new Proxy(target, handler);
+    }}, _class.targetCachedList = {}, _class.targetCounter = { cached: 0, nonReferenced: process.env.SZN_DEBUG ? 0 : null }, _temp);
+
+
+
   Object.defineProperty(self, 'ModuleContextCachedList', {
-    get: function() {
-      return ModuleContextCachedList // return ModuleContextCachedList variable in module scope.
-    },
-  })
-  // add reference used to cache the class if any
-  if (cacheReferenceName) self.cacheReferenceName = cacheReferenceName
+    get: function () {
+      return ModuleContextCachedList;
+    } });
 
-  return self
+
+  if (cacheReferenceName) self.cacheReferenceName = cacheReferenceName;
+
+  return self;
 }
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL3NvdXJjZS9zY3JpcHQuanMiXSwibmFtZXMiOlsiTW9kdWxlQ29udGV4dENhY2hlZExpc3QiLCJQcm94eSIsImFwcGx5IiwidGFyZ2V0IiwidGhpc0FyZyIsImFyZ3VtZW50c0xpc3QiLCJjb250ZXh0UmVmZXJlbmNlIiwiY29uc3RydWN0IiwibmV3VGFyZ2V0IiwiQ2xhc3MiLCJjYWNoZVJlZmVyZW5jZU5hbWUiLCJjb250ZXh0IiwiY3JlYXRlQ2xhc3NTY29wZSIsInNlbGYiLCJNb2R1bGVDb250ZXh0IiwiY29uc3RydWN0b3IiLCJjYWNoZU5hbWUiLCJwcm94aWZpZWQiLCJwcm94aWZ5IiwiY2FjaGVDb250ZXh0IiwiaGFuZGxlciIsImdldCIsInByb3BlcnR5IiwicmVjZWl2ZXIiLCJpbnN0YW5jZSIsInRhcmdldENhY2hlZExpc3QiLCJjYWxsIiwiT2JqZWN0IiwiYXNzaWduIiwibWV0aG9kSW5zdGFuY2VOYW1lIiwidGFyZ2V0Q291bnRlciIsImNhY2hlZCIsInByb2Nlc3MiLCJlbnYiLCJTWk5fREVCVUciLCJub25SZWZlcmVuY2VkIiwiU3ltYm9sIiwiZm9yIiwibmFtZSIsImRlZmluZVByb3BlcnR5Il0sIm1hcHBpbmdzIjoiOzs7Ozs7O0FBT0EsTUFBTUEsdUJBQXVCLEdBQUcsRUFBaEMsQzs7O0FBR2UsSUFBSUMsS0FBSixDQUFVLFlBQVcsQ0FBRSxDQUF2QixFQUF5Qjs7OztBQUl0Q0MsRUFBQUEsS0FBSyxFQUFFLENBQUNDLE1BQUQsRUFBU0MsT0FBVCxFQUFrQkMsYUFBbEIsS0FBb0M7QUFDekMsV0FBT0MsZ0JBQWdCLENBQUMsR0FBR0QsYUFBSixDQUF2QjtBQUNELEdBTnFDOztBQVF0Q0UsRUFBQUEsU0FBUyxFQUFFLENBQUNKLE1BQUQsRUFBU0UsYUFBVCxFQUF3QkcsU0FBeEIsS0FBc0M7QUFDL0MsVUFBTUMsS0FBSyxHQUFHSCxnQkFBZ0IsRUFBOUI7QUFDQSxXQUFPLElBQUlHLEtBQUosQ0FBVSxHQUFHSixhQUFiLENB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Q0FBWXRCLE9BQVosRUFBcUIsR0FBR0MsYUFBeEIsQ0FBWDs7QUFFQSxnQkFBSTJCLE9BQU8sQ0FBQ0MsR0FBUixDQUFZQyxTQUFoQixFQUEyQjs7QUFFekJyQixjQUFBQSxJQUFJLENBQUNpQixhQUFMLENBQW1CSyxhQUFuQjtBQUNBdEIsY0FBQUEsSUFBSSxDQUFDWSxnQkFBTCxDQUFzQlcsTUFBTSxDQUFDQyxHQUFQLENBQVksR0FBRWxDLE1BQU0sQ0FBQ21DLElBQUssSUFBR3pCLElBQUksQ0FBQ2lCLGFBQUwsQ0FBbUJLLGFBQWMsRUFBOUQsQ0FBdEIsSUFBd0lYLFFBQXhJO0FBQ0Q7QUFDRjtBQUNELGlCQUFPQSxRQUFQO0FBQ0QsU0FoQ1csRUFBZDs7QUFrQ0EsYUFBTyxJQUFJdkIsS0FBSixDQUFVRSxNQUFWLEVBQWtCaUIsT0FBbEIsQ0FBUDtBQUNELEtBdEQ4QixDQUF2QixTQUNESyxnQkFEQyxHQUNrQixFQURsQixTQUVESyxhQUZDLEdBRWUsRUFFckJDLE1BQU0sRUFBRSxDQUZhLEVBR3JCSSxhQUFhLEVBQUVILE9BQU8sQ0FBQ0MsR0FBUixDQUFZQyxTQUFaLEdBQXdCLENBQXhCLEdBQTRCLElBSHRCLEVBRmYsUUFBVjs7OztBQTBEQVAsRUFBQUEsTUFBTSxDQUFDWSxjQUFQLENBQXNCMUIsSUFBdEIsRUFBNEIseUJBQTVCLEVBQXVEO0FBQ3JEUSxJQUFBQSxHQUFHLEVBQUUsWUFBVztBQUNkLGFBQU9yQix1QkFBUDtBQUNELEtBSG9ELEVBQXZEOzs7QUFNQSxNQUFJVSxrQkFBSixFQUF3QkcsSUFBSSxDQUFDSCxrQkFBTCxHQUEwQkEsa0JBQTFCOztBQUV4QixTQUFPRyxJQUFQO0FBQ0QiLCJzb3VyY2VzQ29udGVudCI6WyIvKipcclxuICogQ2FjaGVzIG1vZHVsZXMgb24gZGVtYW5kIHVzaW5nIGEgdW5pcXVlIGtleSBuYW1lLlxyXG4gKiBVc2FnZSBvcHRpb25zOlxyXG4gKiAg4oCiIFdpdGgga2V5IC0gT25jZSBkdXJpbmcgYXBwIGluaXRpYWxpemF0aW9uLCB3aGVyZSByZWZlcmVuY2VzIGFyZSBzYXZlZCAoaGFyZCBsaW5rKSB0byBhIHN0cmluZyBrZXkgLSBlLmcuIFwiY29uZGl0aW9uXCIsIFwibWlkZGxld2FyZVwiLlxyXG4gKiAg4oCiIEFub255bW91cyAtIFNldmVyYWwgdGltZXMgZHVyaW5nIGFwcCBydW50aW1lLCB3aGVyZSBpbnN0YW5jZXMgc2hvdWxkIGJlIGdhcmJhZ2UgY29sbGVjdGVkIC0gZS5nLiB0ZW1wbGF0ZS5cclxuICovXHJcblxyXG5jb25zdCBNb2R1bGVDb250ZXh0Q2FjaGVkTGlzdCA9IHt9IC8vIGFsbCBNb2R1bGVDb250ZXh0IGNhY2hlZCBjbGFzc2VzXHJcblxyXG4vLyBJbnRlcmZhY2VzOiBleHBvc2UgYXMgJ25ldycga2V5d29yZCBvciBmdW5jdGlvbiBjYWxsLlxyXG5leHBvcnQgZGVmYXVsdCBuZXcgUHJveHkoZnVuY3Rpb24oKSB7fSwge1xyXG4gIC8qKlxyXG4gICAqICBDcmVhdGUgY2FjaGUgb2YgbW9kdWxlIGNvbnRleHQgYmVmb3JlIGNyZWF0aW5nIGEgY2FjaGUgZm9yIHRhcmdldC5cclxuICAgKi9cclxuICBhcHBseTogKHRhcmdldCwgdGhpc0FyZywgYXJndW1lbnRzTGlzdCkgPT4ge1xyXG4gICAgcmV0dXJuIGNvbnRleHRSZWZlcmVuY2UoLi4uYXJndW1lbnRzTGlzdClcclxuICB9LFxyXG4gIC8vIFVzZSBDb250ZXh0TW9kdWxlIHdpdGhvdXQgY2FjaGluZy5cclxuICBjb25zdHJ1Y3Q6ICh0YXJnZXQsIGFyZ3VtZW50c0xpc3QsIG5ld1RhcmdldCkgPT4ge1xyXG4gICAgY29uc3QgQ2xhc3MgPSBjb250ZXh0UmVmZXJlbmNlKClcclxuICAgIHJldHVybiBuZXcgQ2xhc3MoLi4uYXJndW1lbnRzTGlzdClcclxuICB9LFxyXG59KVxyXG5cclxuLyoqXHJcbiAqIENyZWF0ZSBjb250ZXh0IGZvciAnbW9kdWxlQ29udGV4dCcgY2xhc3NcclxuICovXHJcbmZ1bmN0aW9uIGNvbnRleHRSZWZlcmVuY2Uoe1xyXG4gIGNhY2hlUmVmZXJlbmNlTmFtZSA9IG51bGwsIC8vIGNhY2hlIHJlZmVyZW5jZSBuYW1lLiBJbiBjYXNlIHNwZWNpZmllZCB0aGUgTW9kdWxlQ29udGV4dCBjbGFzcyB3b3VsZCBiZSBjYWNoZWRcclxufSA9IHt9KSB7XHJcbiAgbGV0IGNvbnRleHRcclxuICBpZiAoY2FjaGVSZWZlcmVuY2VOYW1lICYmIE1vZHVsZUNvbnRleHRDYWNoZWRMaXN0W2NhY2hlUmVmZXJlbmNlTmFtZV0pIHtcclxuICAgIGNvbnRleHQgPSBNb2R1bGVDb250ZXh0Q2FjaGVkTGlzdFtjYWNoZVJlZmVyZW5jZU5hbWVdXHJcbiAgfSBlbHNlIGlmIChjYWNoZVJlZmVyZW5jZU5hbWUpIHtcclxuICAgIGNvbnRleHQgPSBNb2R1bGVDb250ZXh0Q2FjaGVkTGlzdFtjYWNoZVJlZmVyZW5jZU5hbWVdID0gY3JlYXRlQ2xhc3NTY29wZSh7IGNhY2hlUmVmZXJlbmNlTmFtZSB9KVxyXG4gIH0gZWxzZSB7XHJcbiAgICBjb250ZXh0ID0gY3JlYXRlQ2xhc3NTY29wZSgpXHJcbiAgfVxyXG4gIHJldHVybiBjb250ZXh0XHJcbn1cclxuXHJcbi8qXHJcbiAqIFJldHVybnMgTW9kdWxlQ29udGV4dCBjbGFzcyBlaXRoZXIgY2FjaGVkIG9yIG5vdC5cclxuICovXHJcbmZ1bmN0aW9uIGNyZWF0ZUNsYXNzU2NvcGUoeyBjYWNoZVJlZmVyZW5jZU5hbWUgfSA9IHt9KSB7XHJcbiAgY29uc3Qgc2VsZiA9IGNsYXNzIE1vZHVsZUNvbnRleHQge1xyXG4gICAgc3RhdGljIHRhcmdldENhY2hlZExpc3QgPSB7fSAvLyBsaXN0IG9mIGNhY2hlZCB0YXJnZXQgb2JqZWN0c1xyXG4gICAgc3RhdGljIHRhcmdldENvdW50ZXIgPSB7XHJcbiAgICAgIC8vIG51bWJlciBvZiBjcmVhdGVkIHRhcmdldCBvYmplY3RzLlxyXG4gICAgICBjYWNoZWQ6IDAsXHJcbiAgICAgIG5vblJlZmVyZW5jZWQ6IHByb2Nlc3MuZW52LlNaTl9ERUJVRyA/IDAgOiBudWxsLCAvLyB0YXJnZXRzIG5vdCBtZWFudCB0byBiZSBjYWNoZWQsIG9ubHkgZm9yIGRlYnVnIHB1cG9zZXMuXHJcbiAgICB9XHJcblxyXG4gICAgLy8gQHJldHVybnMgYSBwcm94aWZpZWQgdmVyc2lvbiBvZiB0YXJnZXQuXHJcbiAgICBjb25zdHJ1Y3Rvcih7IHRhcmdldCwgY2FjaGVOYW1lID0gbnVsbCB9KSB7XHJcbiAgICAgIC8qIHRoaXMgPSBjYWNoZSBtb2R1bGUgY29udGV4dCAqL1xyXG4gICAgICB0aGlzLmNhY2hlTmFtZSA9IGNhY2hlTmFtZVxyXG4gICAgICBsZXQgcHJveGlmaWVkID0gdGhpcy5wcm94aWZ5KHRhcmdldClcclxuICAgICAgcmV0dXJuIHByb3hpZmllZFxyXG4gICAgfVxyXG5cclxuICAgIC8vIHByb3h5IHdyYXBzIHRhcmdldCBvYmplY3RcclxuICAgIHByb3hpZnkodGFyZ2V0KSB7XHJcbiAgICAgIGxldCBjYWNoZUNvbnRleHQgPSB0aGlzXHJcbiAgICAgIGxldCBoYW5kbGVyID0ge1xyXG4gICAgICAgIC8vIGFkZCAnbW9kdWxlQ29udGV4dCcgYXMgZ2V0dGVyIHByb3BlcnR5IG9mIHRoZSB0YXJnZXQuXHJcbiAgICAgICAgZ2V0OiAodGFyZ2V0LCBwcm9wZXJ0eSwgcmVjZWl2ZXIpID0+IHtcclxuICAgICAgICAgIGlmIChwcm9wZXJ0eSA9PSAnbW9kdWxlQ29udGV4dCcpIHtcclxuICAgICAgICAgICAgcmV0dXJuIGNhY2hlQ29udGV4dFxyXG4gICAgICAgICAgfSBlbHNlIHtcclxuICAgICAgICAgICAgcmV0dXJuIHRhcmdldFtwcm9wZXJ0eV1cclxuICAgICAgICAgIH1cclxuICAgICAgICB9LFxyXG4gICAgICAgIC8vIGltcGxlbWVudGF0aW9uIGZvciBmdW5jdGlvbnMgLSBjYWNoZSBmdW5jdGlvbnMgd2hlbiBjYWxsZWQgd2l0aCBzYW1lIGNhY2hlTmFtZVxyXG4gICAgICAgIGFwcGx5OiAodGFyZ2V0LCB0aGlzQXJnLCBhcmd1bWVudHNMaXN0KSA9PiB7XHJcbiAgICAgICAgICBsZXQgaW5zdGFuY2VcclxuICAgICAgICAgIGlmIChjYWNoZUNvbnRleHQuY2FjaGVOYW1lICYmIHNlbGYudGFyZ2V0Q2FjaGVkTGlzdFtjYWNoZUNvbnRleHQuY2FjaGVOYW1lXSkge1xyXG4gICAgICAgICAgICBpbnN0YW5jZSA9IHNlbGYudGFyZ2V0Q2FjaGVkTGlzdFtjYWNoZUNvbnRleHQuY2FjaGVOYW1lXSAvLyByZXR1cm4gcmVzdWx0IG9mIGNhY2hlZCBwcmV2aW91cyBjYWxsLlxyXG4gICAgICAgICAgfSBlbHNlIGlmIChjYWNoZUNvbnRleHQuY2FjaGVOYW1lKSB7XHJcbiAgICAgICAgICAgIGlmICh0eXBlb2YgYXJndW1lbnRzTGlzdFswXSA9PSAnb2JqZWN0Jykge1xyXG4gICAgICAgICAgICAgIHNlbGYudGFyZ2V0Q2FjaGVkTGlzdFtjYWNoZUNvbnRleHQuY2FjaGVOYW1lXSA9IHRhcmdldC5jYWxsKHRoaXNBcmcsIE9iamVjdC5hc3NpZ24oeyBtZXRob2RJbnN0YW5jZU5hbWU6IGNhY2hlQ29udGV4dC5jYWNoZU5hbWUgfSwgYXJndW1lbnRzTGlzdFswXSkpXHJcbiAgICAgICAgICAgIH0gZWxzZSB7XHJcbiAgICAgICAgICAgICAgc2VsZi50YXJnZXRDYWNoZWRMaXN0W2NhY2hlQ29udGV4dC5jYWNoZU5hbWVdID0gdGFyZ2V0LmNhbGwodGhpc0FyZywgLi4uYXJndW1lbnRzTGlzdClcclxuICAgICAgICAgICAgfVxyXG4gICAgICAgICAgICBpbnN0YW5jZSA9IHNlbGYudGFyZ2V0Q2FjaGVkTGlzdFtjYWNoZUNvbnRleHQuY2FjaGVOYW1lXVxyXG4gICAgICAgICAgICBzZWxmLnRhcmdldENvdW50ZXIuY2FjaGVkKytcclxuICAgICAgICAgIH0gZWxzZSB7XHJcbiAgICAgICAgICAgIGluc3RhbmNlID0gdGFyZ2V0LmNhbGwodGhpc0FyZywgLi4uYXJndW1lbnRzTGlzdClcclxuICAgICAgICAgICAgLy8gQ2FjaGUgdGFyZ2V0cyBub3QgbmVlZGVkIHRvIGJlIHJlZmVyZW5jZWQgb25seSBpbiBkZWJ1ZyBtb2RlLlxyXG4gICAgICAgICAgICBpZiAocHJvY2Vzcy5lbnYuU1pOX0RFQlVHKSB7XHJcbiAgICAgICAgICAgICAgLy8gZm9yIGRlYnVnIHB1cnBvc2VzLCBjYWNoZSB0YXJnZXQgb2JqZWN0cyB3aXRoIGF1dG9tYXRpY2FsbHkgbmFtZWQgcmVmZXJlbmNlcy5cclxuICAgICAgICAgICAgICBzZWxmLnRhcmdldENvdW50ZXIubm9uUmVmZXJlbmNlZCsrXHJcbiAgICAgICAgICAgICAgc2VsZi50YXJnZXRDYWNoZWRMaXN0W1N5bWJvbC5mb3IoYCR7dGFyZ2V0Lm5hbWV9ICR7c2VsZi50YXJnZXRDb3VudGVyLm5vblJlZmVyZW5jZWR9YCAvKmNyZWF0ZSBhIG5hbWUgdGhhdCBpcyBtb3JlIHVuZGVyc3RhbmRhYmxlKi8pXSA9IGluc3RhbmNlXHJcbiAgICAgICAgICAgIH1cclxuICAgICAgICAgIH1cclxuICAgICAgICAgIHJldHVybiBpbnN0YW5jZVxyXG4gICAgICAgIH0sXHJcbiAgICAgIH1cclxuICAgICAgcmV0dXJuIG5ldyBQcm94eSh0YXJnZXQsIGhhbmRsZXIpXHJcbiAgICB9XHJcbiAgfVxyXG5cclxuICAvLyBhZGQgZ2V0dGVyIHRvIHJlaXRyaXZlIHRoZSBjYWNoZSBsaXN0IG9mIHN0YXRpYyBjbGFzc2VzICdDb250ZXh0TW9kdWxlJyAoZGVmaW5pbmcgZ2V0dGVyIG9uIGFuIGV4aXN0aW5nIG9iamVjdClcclxuICBPYmplY3QuZGVmaW5lUHJvcGVydHkoc2VsZiwgJ01vZHVsZUNvbnRleHRDYWNoZWRMaXN0Jywge1xyXG4gICAgZ2V0OiBmdW5jdGlvbigpIHtcclxuICAgICAgcmV0dXJuIE1vZHVsZUNvbnRleHRDYWNoZWRMaXN0IC8vIHJldHVybiBNb2R1bGVDb250ZXh0Q2FjaGVkTGlzdCB2YXJpYWJsZSBpbiBtb2R1bGUgc2NvcGUuXHJcbiAgICB9LFxyXG4gIH0pXHJcbiAgLy8gYWRkIHJlZmVyZW5jZSB1c2VkIHRvIGNhY2hlIHRoZSBjbGFzcyBpZiBhbnlcclxuICBpZiAoY2FjaGVSZWZlcmVuY2VOYW1lKSBzZWxmLmNhY2hlUmVmZXJlbmNlTmFtZSA9IGNhY2hlUmVmZXJlbmNlTmFtZVxyXG5cclxuICByZXR1cm4gc2VsZlxyXG59XHJcbiJdfQ==
